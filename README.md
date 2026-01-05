@@ -12,6 +12,11 @@ This simulates how large-scale systems efficiently handle massive write traffic.
 
 ---
 
+## 🧩 System Architecture
+
+![Batch Processing Architecture](./assets/workflow.png)
+
+
 ## 🧱 Tech Stack
 
 - Node.js + Express
