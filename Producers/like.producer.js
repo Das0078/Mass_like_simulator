@@ -4,6 +4,15 @@ const likeQueue = require("../Queues/like.queue");
 const bullRedis = require('../connections/redis.bull');
 
 
+const luaScript = `
+  local val = redis.call("GET", KEYS[1])
+  if not val then
+    return 0
+  end
+  redis.call("SET", KEYS[1], 0)
+  return tonumber(val)
+`;
+
 async function flushLikesToQueue() {
   const keys = await redis.keys("like:post:*");
 
@@ -13,7 +22,11 @@ async function flushLikesToQueue() {
 
   for (const key of keys) {
     const postId = key.split(":")[2];
-    const count = parseInt(await redis.get(key));
+
+    const count = await redis.eval(luaScript, {
+      keys: [key],
+      arguments: []
+    });
 
     if (count > 0) {
       jobs.push({
@@ -22,7 +35,6 @@ async function flushLikesToQueue() {
       });
     }
 
-    await redis.del(key);
   }
 
   if (jobs.length) {
